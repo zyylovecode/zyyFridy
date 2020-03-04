@@ -1,53 +1,197 @@
-# zyyFridy Springboot权限管理系统
+# treetable-lay
+&emsp;实现layui的树形表格treeTable
 
-#### 介绍
-基于Spring Boot2.X开发的后台权限管理系统，快速搭建项目，提供纯净的权限管理功能，可作为开发项目的脚手架，是一个基础项目。
+## 1.简介
+&emsp;在layui数据表格之上进行扩展实现。
 
-#### 软件技术
-1. Spring Boot 2.1.4
-2. Spring Security 5.1.5
-3. Mybatis 3.5.1
-4. Logback 1.2.3
-5. Druid 1.1.10
-6. Swagger 2.9.2
-7. Lombok 1.18.6
-8. X-admin 2.2
-9. Thymeleaf 3.0.11
-10. Layui 2.5.3
-11. MySQL 5.6
-12. Docker(用于提供MySQL服务) 
+- 演示地址：[https://whvse.gitee.io/treetable-lay/](https://whvse.gitee.io/treetable-lay/)
 
-#### 内置功能
-1. 用户管理：用户查询、添加用户、修改用户、用户角色设置、删除用户；
-2. 角色管理：角色查询、添加角色、修改角色、角色菜单权限配置、删除角色；
-3. 菜单管理：菜单查询、添加菜单、修改菜单、删除菜单；
-4. 登录、登出：基于Spring Security的认证和授权；
-5. Druid数据源监控功能；
-6. Swagger接口文档功能；
-7. 修改密码；
-8. 代码自动生成：根据数据表以及自定义模板自动生成html、controller、service、serviceImpl、dao、mapper.xml文件；
 
-#### 安装引导
+&emsp;还有一个BOM表结构的树形表格，[树形表格2](https://gitee.com/whvse/treetable)，欢迎查看。
 
-1. 克隆源代码并使用Intelij IDEA导入项目代码；
-2. Intelij IDEA中安装Lombok插件，参考：https://jingyan.baidu.com/article/0a52e3f4e53ca1bf63ed725c.html
-3. 将'/resources'目录下的'friday.sql'导入MySQL数据库；
-4. 修改'/resources'目录下的'application.yml'文件中的数据源配置，改为你自己的MySQL环境:
+## 2.使用方法
 
-```
-url: jdbc:mysql://localhost:3306/sxb-base?useUnicode=true&characterEncoding=utf-8&allowMultiQueries=true&useSSL=false&serverTimezone=UTC
-
-username: root
-
-password: my-secret-pw
+### 2.1.引入模块
+&emsp;下载module/treetable-lay整个文件夹，放在你的项目里面，然后使用模块加载的方式使用：
+```javascript
+layui.config({
+    base: 'module/'
+}).extend({
+    treetable: 'treetable-lay/treetable'
+}).use(['treetable'], function () {
+    var treetable = layui.treetable;
+    
+});
 ```
 
-5. 启动项目，访问"http://localhost:8080",输入admin/admin即可登陆成功。
+### 2.2.渲染表格
+```html
+<table id="table1" class="layui-table" lay-filter="table1"></table>
+
+<script>
+layui.use(['treetable'], function () {
+    var treetable = layui.treetable;
+    
+    // 渲染表格
+    treetable.render({
+        treeColIndex: 2,          // treetable新增参数
+        treeSpid: -1,             // treetable新增参数
+        treeIdName: 'd_id',       // treetable新增参数
+        treePidName: 'd_pid',     // treetable新增参数
+        treeDefaultClose: true,   // treetable新增参数
+        treeLinkage: true,        // treetable新增参数
+        elem: '#table1',
+        url: 'json/data1.json',
+        cols: [[
+            {type: 'numbers'},
+            {field: 'id', title: 'id'},
+            {field: 'name', title: 'name'},
+            {field: 'sex', title: 'sex'},
+            {field: 'pid', title: 'pid'},
+        ]]
+    });
+});
+</script>
+
+```
+
+> 注意：<br>
+> &emsp;&emsp;可以使用url传递数据，也可以使用data传递数据，如果使用url传递数据，参数是where字段，
+> 跟layui数据表格的使用方式一致。
+
+<br/>
+
+&emsp;**数据格式**
+
+&emsp;&emsp;总而言之就是以id、pid的形式，不是以subMenus的形式，当然id、pid这两个字段的名称可以自定义：
+```json
+{
+  "code": 0,
+  "msg": "ok",
+  "data": [{
+      "id": 1,
+      "name": "xx",
+      "sex": "male",
+      "pid": -1
+    },{
+      "id": 2,
+      "name": "xx",
+      "sex": "male",
+      "pid": 1
+    }
+  ]
+}
+```
+
+### 2.3.参数说明
+&emsp;layui数据表格的所有参数都可以用，除此之外treetable新增的参数有：
+
+ 参数 | 类型 | 是否必填 | 描述 |
+ --- | --- | --- | ---
+ treeColIndex | int | 是 | 树形图标显示在第几列
+ treeSpid | object | 是 | 最上级的父级id
+ treeIdName | string | 否 | id字段的名称
+ treePidName | string | 否 | pid字段的名称
+ treeDefaultClose | boolean | 否 | 是否默认折叠
+ treeLinkage | boolean | 否 | 父级展开时是否自动展开所有子级
+
+
+&emsp;**treeColIndex**
+
+&emsp;树形图标（箭头和文件夹、文件的图标）显示在第几列， 索引值是cols数组的下标。
+
+&emsp;**treeSpid**
+
+&emsp;最上级的父级id，比如你可以规定pid为0或-1的是最顶级的目录。
+ 
+&emsp;**treeIdName**
+
+&emsp;treetable是以id和pid字段来渲染树形结构的，如果你的数据没有id和pid字段，你可以指定id和pid字段的名称。
+
+&emsp;**treePidName**
+
+&emsp;pid在你的数据字段中的名称。
+
+
+&emsp;**treeDefaultClose**
+
+&emsp;默认是全部展开的，如果需要默认全部关闭，加上treeDefaultClose:true即可。
+
+&emsp;**treeLinkage**
+
+&emsp;父级展开时是否自动展开所有子级
+
+
+### 2.4.注意事项
+
+- 不能使用分页功能，即使写了page:true，也会忽略该参数。
+
+- 不能使用排序功能，不要开启排序功能。
+- table.reload()不能实现刷新，请参考demo的刷新。
+- 除了文档上写的treetable.xxx的方法之外，其他数据表格的方法都使用table.xxx。
+- 建议删除和修改请求完后台之后请刷新（重新渲染）表格，最好不要使用obj.delete方式删除。
+
+### 2.5.其他方法
+
+&emsp;**全部展开**
+```javascript
+treetable.expandAll('#table1');
+```
+ 
+&emsp;**全部折叠**
+ ```javascript
+treetable.foldAll('#table1');
+```
+
+### 2.6.如何修改图标
+
+&emsp;&emsp;通过css来修改图标，content是图标的unicode字符。
+
+&emsp;**修改文件夹图标：**
+```css
+/** 未展开 */
+.treeTable-icon .layui-icon-layer:before {
+    content: "\e638";
+}
+
+/** 展开 */
+.treeTable-icon.open .layui-icon-layer:before {
+    content: "\e638";
+}
+```
+
+&emsp;**修改文件图标：**
+```css
+.treeTable-icon .layui-icon-file:before {
+    content: "\e621";
+}
+```
+
+&emsp;**修改箭头的图标：**
+```css
+/** 未展开 */
+.treeTable-icon .layui-icon-triangle-d:before {
+    content: "\e623";
+}
+
+/** 展开 */
+.treeTable-icon.open .layui-icon-triangle-d:before {
+    content: "\e625";
+}
+```
+
+&emsp;**如何获取content：**
+
+![](https://ws1.sinaimg.cn/large/006a7GCKgy1ftjutx5bk0j30pq0ht40b.jpg)
 
 
 
+## 2.7.截图
 
+&emsp;树形表格1：
 
+![树形表格1](https://ws1.sinaimg.cn/large/006a7GCKly1ftisynlfq0j30ng0g3t9b.jpg)
 
-#### 如有帮助，请随手点击右上角的star，非常感谢。
+&emsp;树形表格2：
 
+![树形表格2](https://ws1.sinaimg.cn/large/006a7GCKgy1ftgdebdnsmj30ux0qktbc.jpg)
